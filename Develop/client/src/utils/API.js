@@ -1,10 +1,11 @@
+// route to get logged in user's info (needs the token)
 export const GET_ME = (token) => {
   return fetch('/api/users/me', {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      authorization: `Bearer ${token}`,
     },
-  }).then((response) => response.json());
+  });
 };
 
 export const createUser = (userData) => {
@@ -14,7 +15,7 @@ export const createUser = (userData) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(userData),
-  }).then((response) => response.json());
+  });
 };
 
 export const loginUser = (userData) => {
@@ -24,31 +25,33 @@ export const loginUser = (userData) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(userData),
-  }).then((response) => response.json());
+  });
 };
 
+// save book data for a logged in user
 export const saveBook = (bookData, token) => {
   return fetch('/api/users', {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(bookData),
-  }).then((response) => response.json());
+  });
 };
 
+// remove saved book data for a logged in user
 export const removeBook = (bookId, token) => {
   return fetch(`/api/users/books/${bookId}`, {
     method: 'DELETE',
     headers: {
-      Authorization: `Bearer ${token}`,
+      authorization: `Bearer ${token}`,
     },
-  }).then((response) => response.json());
+  });
 };
 
+// make a search to google books api
+// https://www.googleapis.com/books/v1/volumes?q=harry+potter
 export const searchGoogleBooks = (query) => {
-  return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`).then((response) =>
-    response.json()
-  );
+  return fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
 };

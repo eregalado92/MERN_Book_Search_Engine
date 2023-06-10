@@ -1,65 +1,101 @@
 import React, { useState } from 'react';
+import { Form, Button, Alert } from 'react-bootstrap';
+import Auth from '../utils/auth';
+import { ADD_USER } from '../utils/mutation';
+import { useMutation } from '@apollo/react-hooks';
 
 const SignupForm = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [addUser] = useMutation(ADD_USER);
+  const [userFormData, setUserFormData] = useState({ username: '', email: '', password: '' });
+  const [validated, setValidated] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
 
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setUserFormData({ ...userFormData, [name]: value });
   };
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
+    if (form.checkValidity() === false) {
+      event.stopPropagation();
+    }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle signup logic here
-    console.log('Signed up!');
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('Password:', password);
+    setValidated(true);
+
+    try {
+      const { data } = await addUser({
+        variables: { ...userFormData },
+      });
+
+      Auth.login(data.addUser.token);
+    } catch (err) {
+      console.error(err);
+      setShowAlert(true);
+    }
+
+    setUserFormData({ username: '', email: '', password: '' });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={handleUsernameChange}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={handleEmailChange}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={handlePasswordChange}
-          required
-        />
-      </div>
-      <button type="submit">Sign Up</button>
-    </form>
+    <>
+      <Form noValidate validated={validated} onSubmit={handleFormSubmit}>
+        <Alert dismissible onClose={() => setShowAlert(false)} show={showAlert} variant='danger'>
+          Something went wrong with your signup!
+        </Alert>
+
+        <Form.Group>
+          <Form.Label htmlFor='username'>Username</Form.Label>
+          <Form.Control
+            type='text'
+            placeholder='Your username'
+            name='username'
+            onChange={handleInputChange}
+            value={userFormData.username}
+            required
+          />
+          <Form.Control.Feedback type='invalid'>Username is required!</Form.Control.Feedback>
+        </Form.Group>
+
+        <Form.Group>
+          <Form.Label htmlFor='email'>Email</Form.Label>
+          <Form.Control
+            type='email'
+            placeholder='Your email address'
+            name='email'
+            onChange={handleInputChange}
+            value={userFormData.email}
+            autoComplete='on'
+            required
+          />
+          <Form.Control.Feedback type='invalid'>Email is required!</Form.Control.Feedback>
+        </Form.Group>
+
+        <Form.Group>
+          <Form.Label htmlFor='password'>Password</Form.Label>
+          <Form.Control
+            type='password'
+            placeholder='Your password'
+            name='password'
+            onChange={handleInputChange}
+            value={userFormData.password}
+            autoComplete='on'
+            required
+          />
+          <Form.Control.Feedback type='invalid'>Password is required!</Form.Control.Feedback>
+        </Form.Group>
+
+        <Button
+          disabled={!(userFormData.username && userFormData.email && userFormData.password)}
+          type='submit'
+          variant='success'
+        >
+          Submit
+        </Button>
+      </Form>
+    </>
   );
 };
 
